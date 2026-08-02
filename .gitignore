@@ -1,0 +1,14 @@
+# Terraform
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.plan
+
+# Secrets
+secrets.tfvars
+
+# Local / OS
+.DS_Store
+
+# Third-party binaries
+*.jar

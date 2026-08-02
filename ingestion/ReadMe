@@ -1,0 +1,24 @@
+
+
+
+Step to deploy   -    Stage/ Prod 
+------------------------------------
+
+terraform init
+set AWS_PROFILE=dev
+terraform plan -var-file="dev.tfvars"
+terraform apply -var-file="dev.tfvars"
+
+aws glue start-job-run --job-name rds-to-s3-job --profile dev
+aws glue start-job-run --job-name dynamodb-to-s3-job  --profile dev
+
+aws glue start-crawler --name s3_customer_analytics_crawler --profile dev
+
+
+terraform destroy -var-file="dev.tfvars"
+
+
+
+
+## Production Profile 
+aws glue start-crawler --name s3_customer_analytics_crawler --profile prod
