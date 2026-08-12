@@ -8,3 +8,8 @@ glue_role_arn = "arn:aws:iam::583387202053:role/glue_rds_s3_dev"
 input_db      = "customer_analytics_db_bronze_dev"
 output_db     = "customer_analytics_db_silver_dev"
 output_bucket = "s3://customer360-dev-2026/silver/Customer360_Preprocessing"
+
+glue_gold_job_name = "Customer360_Gold"
+input_db_gold      = "customer_analytics_db_silver_dev"
+output_db_gold     = "customer_analytics_db_gold_dev"
+output_bucket_gold = "s3://customer360-dev-2026/gold/Customer360_Gold"

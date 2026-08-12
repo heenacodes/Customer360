@@ -53,8 +53,8 @@ def run_etl():
     clean_orders_df.createOrReplaceTempView("clean_orders")
 
     valid_orders_df = valid_orders(spark)
-    write_to_s3_create_table(valid_orders_df, output_bucket+"/valid_orders", output_db, "orders")
-    write_to_s3_create_table(clean_customers_df, output_bucket+"/clean_customers", output_db, "customers")
+    write_to_s3_create_table(valid_orders_df, output_bucket, output_db, "orders")
+    write_to_s3_create_table(clean_customers_df, output_bucket, output_db, "customers")
 
 
 def clean_orders(spark):

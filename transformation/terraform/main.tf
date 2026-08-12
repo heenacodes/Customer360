@@ -34,6 +34,22 @@ variable "output_bucket" {
   description = "S3 bucket path to write silver output"
 }
 
+variable "glue_gold_job_name" {
+  description = "Name of the Glue gold transformation job"
+}
+
+variable "input_db_gold" {
+  description = "Input Glue database for gold (silver)"
+}
+
+variable "output_db_gold" {
+  description = "Output Glue database (gold)"
+}
+
+variable "output_bucket_gold" {
+  description = "S3 bucket path to write gold output"
+}
+
 data "aws_s3_bucket" "customer360" {
   bucket = var.bucket_name
 }
@@ -63,25 +79,51 @@ resource "aws_s3_object" "utils_script" {
   etag   = filemd5("../glue_etl_pipeline/utils.py")
 }
 
+resource "aws_s3_object" "gold_transformation_script" {
+  bucket = data.aws_s3_bucket.customer360.id
+  key    = "code/gold_transformation.py"
+  source = "../glue_etl_pipeline/gold_transformation.py"
+  etag   = filemd5("../glue_etl_pipeline/gold_transformation.py")
+}
+
 resource "aws_glue_catalog_database" "silver" {
   name = "customer_analytics_db_silver_${var.env}"
 }
 
-resource "aws_glue_job" "preprocessing" {
-  name     = var.glue_job_name
+resource "aws_glue_catalog_database" "gold" {
+  name = "customer_analytics_db_gold_${var.env}"
+}
+
+locals {
+  glue_jobs = {
+    pre_processing = {
+      name   = var.glue_job_name
+      script = "preprocessing.py"
+    }
+    gold = {
+      name   = var.glue_gold_job_name
+      script = "gold_transformation.py"
+    }
+  }
+}
+
+resource "aws_glue_job" "jobs" {
+  for_each = local.glue_jobs
+
+  name     = each.value.name
   role_arn = var.glue_role_arn
 
   command {
     name            = "glueetl"
-    script_location = "s3://${var.bucket_name}/code/preprocessing.py"
+    script_location = "s3://${var.bucket_name}/code/${each.value.script}"
     python_version  = "3"
   }
 
   default_arguments = {
-    "--JOB_NAME"                = var.glue_job_name
-    "--INPUT_DB"                = var.input_db
-    "--OUTPUT_DB"               = var.output_db
-    "--OUTPUT_BUCKET"           = var.output_bucket
+    "--JOB_NAME"                = each.value.name
+    "--INPUT_DB"                = each.key == "pre_processing" ? var.input_db : var.input_db_gold
+    "--OUTPUT_DB"               = each.key == "pre_processing" ? var.output_db : var.output_db_gold
+    "--OUTPUT_BUCKET"           = each.key == "pre_processing" ? var.output_bucket : var.output_bucket_gold
     "--extra-py-files"          = "s3://${var.bucket_name}/code/utils.py"
     "--enable-glue-datacatalog" = "true"
   }
@@ -97,4 +139,8 @@ output "bucket_name" {
 
 output "silver_glue_database" {
   value = aws_glue_catalog_database.silver.name
+}
+
+output "gold_glue_database" {
+  value = aws_glue_catalog_database.gold.name
 }
