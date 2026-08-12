@@ -18,36 +18,32 @@ variable "glue_job_name" {
   description = "Name of the Glue preprocessing job"
 }
 
-variable "glue_role_arn" {
-  description = "IAM role ARN used by the Glue job"
-}
-
-variable "input_db" {
-  description = "Input Glue database (bronze)"
-}
-
-variable "output_db" {
-  description = "Output Glue database (silver)"
-}
-
-variable "output_bucket" {
-  description = "S3 bucket path to write silver output"
-}
-
 variable "glue_gold_job_name" {
   description = "Name of the Glue gold transformation job"
 }
 
-variable "input_db_gold" {
-  description = "Input Glue database for gold (silver)"
+variable "glue_role_arn" {
+  description = "IAM role ARN used by the Glue job"
 }
 
-variable "output_db_gold" {
+variable "glue_input_database_name" {
+  description = "Input Glue database (bronze)"
+}
+
+variable "glue_silver_database_name" {
+  description = "Silver Glue database"
+}
+
+variable "glue_output_database_name" {
   description = "Output Glue database (gold)"
 }
 
-variable "output_bucket_gold" {
-  description = "S3 bucket path to write gold output"
+variable "S3_SILVER_TARGET_PATH" {
+  description = "S3 path for silver output"
+}
+
+variable "S3_TARGET_PATH" {
+  description = "S3 path for gold output"
 }
 
 data "aws_s3_bucket" "customer360" {
@@ -121,9 +117,9 @@ resource "aws_glue_job" "jobs" {
 
   default_arguments = {
     "--JOB_NAME"                = each.value.name
-    "--INPUT_DB"                = each.key == "pre_processing" ? var.input_db : var.input_db_gold
-    "--OUTPUT_DB"               = each.key == "pre_processing" ? var.output_db : var.output_db_gold
-    "--OUTPUT_BUCKET"           = each.key == "pre_processing" ? var.output_bucket : var.output_bucket_gold
+    "--INPUT_DB"                = each.key == "pre_processing" ? var.glue_input_database_name : var.glue_silver_database_name
+    "--OUTPUT_DB"               = each.key == "pre_processing" ? var.glue_silver_database_name : var.glue_output_database_name
+    "--S3_TARGET_PATH"          = each.key == "pre_processing" ? var.S3_SILVER_TARGET_PATH : var.S3_TARGET_PATH
     "--extra-py-files"          = "s3://${var.bucket_name}/code/utils.py"
     "--enable-glue-datacatalog" = "true"
   }

@@ -11,7 +11,7 @@ def get_spark_context(args):
     input_db = args.get("INPUT_DB", "customer_analytics_db_silver_dev")
     output_db = args.get("OUTPUT_DB", "customer_analytics_db_gold_dev")
     job_name = args.get("JOB_NAME", "Customer360_Gold")
-    output_bucket = args.get("OUTPUT_BUCKET", f"s3://customer360-dev-2026/gold/{job_name}")
+    output_bucket = args.get("S3_TARGET_PATH", f"s3://customer360-dev-2026/gold/{job_name}")
 
     spark = SparkSession.builder \
         .appName("Customer360_Gold") \
@@ -119,5 +119,5 @@ def build_customer_360(spark):
 
 
 if __name__ == "__main__":
-    args = getResolvedOptions(sys.argv, ["JOB_NAME", "INPUT_DB", "OUTPUT_DB", "OUTPUT_BUCKET"])
+    args = getResolvedOptions(sys.argv, ["JOB_NAME", "INPUT_DB", "OUTPUT_DB", "S3_TARGET_PATH"])
     run_etl(args)
